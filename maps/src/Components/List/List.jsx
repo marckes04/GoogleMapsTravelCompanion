@@ -1,32 +1,17 @@
 import React, { useState } from "react";
-import {
-  Typography,
-  InputLabel,
-  MenuItem,
-  Select,
-  Grid2 as Grid,
-} from "@mui/material";
+import { Typography, InputLabel, MenuItem, Select, Grid2 as Grid, Box, CircularProgress } from "@mui/material";
 import { Container, StyledFormControl, ListContainer } from "./Style";
+import PlaceDetails from '../PlaceDetails/PlaceDetails';
 
-import PlaceDetails from '../PlaceDetails/PlaceDetails'
-
-const List = () => {
+const List = ({ places, isLoading }) => {
   const [type, setType] = useState("restaurants");
   const [rating, setRating] = useState("");
 
-  const places = [
-    { name: "Cool Place" },
-    { name: "Best Beer" },
-    { name: "Best Steak" },
-    { name: "Cool Place" },
-    { name: "Best Beer" },
-    { name: "Best Steak" },
-    { name: "Cool Place" },
-    { name: "Best Beer" },
-    { name: "Best Steak" },
-  ];
-
-  // ... existing imports
+  if (isLoading) return (
+    <Box display="flex" justifyContent="center" alignItems="center" height="600px">
+      <CircularProgress size="5rem" />
+    </Box>
+  );
 
   return (
     <Container>
@@ -45,7 +30,6 @@ const List = () => {
             </Select>
           </StyledFormControl>
         </Grid>
-
         <Grid size={{ xs: 6 }}>
           <StyledFormControl fullWidth variant="standard">
             <InputLabel>Rating</InputLabel>
@@ -59,11 +43,9 @@ const List = () => {
         </Grid>
       </Grid>
 
-      {/* Use ListContainer here for the scrollable area */}
       <ListContainer>
         <Grid container spacing={3}>
           {places?.map((place, i) => (
-            /* item prop removed, size={{ xs: 12 }} added */
             <Grid size={{ xs: 12 }} key={i}>
               <PlaceDetails place={place} />
             </Grid>
