@@ -1,58 +1,38 @@
-import React, { useState } from "react";
-import { Typography, InputLabel, MenuItem, Select, Grid2 as Grid, Box, CircularProgress } from "@mui/material";
-import { Container, StyledFormControl, ListContainer } from "./Style";
+import React, { useState, useEffect, createRef } from 'react';
+import { CircularProgress, Grid2 as Grid, Typography, Box } from '@mui/material';
 import PlaceDetails from '../PlaceDetails/PlaceDetails';
 
-const List = ({ places, isLoading }) => {
-  const [type, setType] = useState("restaurants");
-  const [rating, setRating] = useState("");
+const List = ({ places, childClicked, isLoading }) => {
+  const [elRefs, setElRefs] = useState([]);
 
-  if (isLoading) return (
-    <Box display="flex" justifyContent="center" alignItems="center" height="600px">
-      <CircularProgress size="5rem" />
-    </Box>
-  );
+  useEffect(() => {
+    // Sincronizamos las referencias con la cantidad de lugares
+    setElRefs((refs) => Array(places?.length).fill().map((_, i) => refs[i] || createRef()));
+  }, [places]);
 
   return (
-    <Container>
-      <Typography variant="h5" sx={{ marginBottom: "20px" }}>
-        Restaurants, Hotels & Attractions
-      </Typography>
-
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 6 }}>
-          <StyledFormControl fullWidth variant="standard">
-            <InputLabel>Type</InputLabel>
-            <Select value={type} onChange={(e) => setType(e.target.value)}>
-              <MenuItem value="restaurants">Restaurants</MenuItem>
-              <MenuItem value="hotels">Hotels</MenuItem>
-              <MenuItem value="attractions">Attractions</MenuItem>
-            </Select>
-          </StyledFormControl>
-        </Grid>
-        <Grid size={{ xs: 6 }}>
-          <StyledFormControl fullWidth variant="standard">
-            <InputLabel>Rating</InputLabel>
-            <Select value={rating} onChange={(e) => setRating(e.target.value)}>
-              <MenuItem value={0}>All</MenuItem>
-              <MenuItem value={3}>Above 3.0</MenuItem>
-              <MenuItem value={4}>Above 4.0</MenuItem>
-              <MenuItem value={4.5}>Above 4.5</MenuItem>
-            </Select>
-          </StyledFormControl>
-        </Grid>
-      </Grid>
-
-      <ListContainer>
-        <Grid container spacing={3}>
-          {places?.map((place, i) => (
-            <Grid size={{ xs: 12 }} key={i}>
-              <PlaceDetails place={place} />
-            </Grid>
-          ))}
-        </Grid>
-      </ListContainer>
-    </Container>
+    <Box sx={{ p: '25px' }}>
+      <Typography variant="h5" sx={{ mb: 3 }}></Typography>
+      {isLoading ? (
+        <Box sx={{ height: '600px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <CircularProgress size="5rem" />
+        </Box>
+      ) : (
+        <Box sx={{ height: '75vh', overflowY: 'auto', overflowX: 'hidden' }}>
+          <Grid container spacing={3}>
+            {places?.map((place, i) => (
+              <Grid size={{ xs: 12 }} key={i}>
+                <PlaceDetails 
+                  place={place} 
+                  selected={Number(childClicked) === i} 
+                  refProp={elRefs[i]} 
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+    </Box>
   );
 };
 

@@ -1,65 +1,64 @@
-import React, { useEffect, useState } from "react";
-import { CssBaseline, Grid2 as Grid } from "@mui/material";
+import React, { useState, useEffect } from 'react';
+import { CssBaseline, Grid2 as Grid } from '@mui/material';
 
-import { getPlacesData } from "./API";
-import Header from "./Components/Header/Header";
-import List from "./Components/List/List";
-import Map from "./Components/Map/Map";
+import { getPlacesData } from './API/index'; // Asegúrate de que la ruta sea correcta
+import Header from './Components/Header/Header';
+import List from './Components/List/List';
+import Map from './Components/Map/Map';
 
-function App() {
+const App = () => {
   const [places, setPlaces] = useState([]);
-  const [coordinates, setCoordinates] = useState({ lat: 0, lng: 0 });
+  const [coords, setCoords] = useState({ lat: 0, lng: 0 });
   const [bounds, setBounds] = useState({});
-  // Inside App.js
-const [isLoading, setIsLoading] = useState(false);
+  const [childClicked, setChildClicked] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Get initial user location
+  // 1. Obtener ubicación actual al cargar
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(({ coords: { latitude, longitude } }) => {
-      setCoordinates({ lat: latitude, lng: longitude });
-    });
+      setCoords({ lat: latitude, lng: longitude });
+    }, (error) => console.error("Error de ubicación:", error));
   }, []);
 
-  // App.js
-useEffect(() => {
-  // 1. GATEKEEPER: Don't run if bounds are missing or if we are already loading
-  if (bounds?.sw && bounds?.ne && !isLoading) {
-    
-    // 2. DEBOUNCE: Wait 1 second after the map stops before calling the API
-    const delayDebounceFn = setTimeout(() => {
+  // 2. Llamada a la API cuando el mapa se mueve
+  useEffect(() => {
+    if (bounds.sw && bounds.ne) {
       setIsLoading(true);
-      
       getPlacesData(bounds.sw, bounds.ne)
         .then((data) => {
-          setPlaces(data);
+          // FILTRO CRÍTICO: Eliminamos lugares sin coordenadas para no romper los índices
+          const filteredData = data?.filter((place) => place.name && place.latitude && place.longitude);
+          setPlaces(filteredData);
+          setChildClicked(null); // Reiniciar selección al cambiar de zona
           setIsLoading(false);
-        })
-        .catch(() => setIsLoading(false));
-    }, 1000); 
-
-    return () => clearTimeout(delayDebounceFn);
-  }
-}, [bounds]); // <--- ONLY bounds. NO coordinates.
+        });
+    }
+  }, [bounds]);
 
   return (
     <>
       <CssBaseline />
-      <Header setCoordinates={setCoordinates} />
-      <Grid container spacing={3} sx={{ width: "100%" }}>
+      <Header setCoords={setCoords} />
+      <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
         <Grid size={{ xs: 12, md: 4 }}>
-          {/* Passing places to the list */}
-          <List places={places} />
+          <List 
+            places={places} 
+            childClicked={childClicked} 
+            isLoading={isLoading} 
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 8 }}>
-          <Map 
-            setCoordinates={setCoordinates}
+          <Map
+            setCoords={setCoords}
             setBounds={setBounds}
-            coordinates={coordinates}
+            coords={coords}
+            places={places}
+            setChildClicked={setChildClicked}
           />
         </Grid>
       </Grid>
     </>
   );
-}
+};
 
 export default App;
