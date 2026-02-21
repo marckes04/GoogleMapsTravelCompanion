@@ -1,50 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { CssBaseline, Grid2 as Grid } from '@mui/material';
+import { LoadScript } from '@react-google-maps/api';
 
-import { getPlacesData } from './API/index'; // Asegúrate de que la ruta sea correcta
+import { getPlacesData } from './API';
 import Header from './Components/Header/Header';
 import List from './Components/List/List';
 import Map from './Components/Map/Map';
 
+// Importante: Definir las librerías fuera del componente para evitar re-renders infinitos
+const libraries = ['places'];
+
 const App = () => {
   const [places, setPlaces] = useState([]);
   const [coords, setCoords] = useState({ lat: 0, lng: 0 });
-  const [bounds, setBounds] = useState({});
+  const [bounds, setBounds] = useState(null);
   const [childClicked, setChildClicked] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 1. Obtener ubicación actual al cargar
+  // Estados para filtros
+  const [type, setType] = useState('restaurants');
+  const [rating, setRating] = useState('');
+  const [filteredPlaces, setFilteredPlaces] = useState([]);
+
+  // 1. Obtener la ubicación inicial del usuario
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(({ coords: { latitude, longitude } }) => {
       setCoords({ lat: latitude, lng: longitude });
-    }, (error) => console.error("Error de ubicación:", error));
+    });
   }, []);
 
-  // 2. Llamada a la API cuando el mapa se mueve
+  // 2. Filtrado por Rating (Estrellas)
   useEffect(() => {
-    if (bounds.sw && bounds.ne) {
+    const filtered = places?.filter((place) => Number(place.rating) > rating);
+    setFilteredPlaces(filtered);
+  }, [rating, places]);
+
+  // 3. Llamada a la API cuando cambian las coordenadas, el zoom o el tipo (Hoteles/Restaurantes)
+  useEffect(() => {
+    if (bounds?.sw && bounds?.ne) {
       setIsLoading(true);
-      getPlacesData(bounds.sw, bounds.ne)
+
+      getPlacesData(type, bounds.sw, bounds.ne)
         .then((data) => {
-          // FILTRO CRÍTICO: Eliminamos lugares sin coordenadas para no romper los índices
-          const filteredData = data?.filter((place) => place.name && place.latitude && place.longitude);
-          setPlaces(filteredData);
-          setChildClicked(null); // Reiniciar selección al cambiar de zona
+          // Filtramos datos basura o anuncios que no traen nombre ni coordenadas
+          const validData = data?.filter((place) => place.name && place.latitude && place.longitude);
+          setPlaces(validData);
+          setFilteredPlaces([]); // Limpiamos filtros anteriores
+          setRating('');
           setIsLoading(false);
         });
     }
-  }, [bounds]);
+  }, [type, bounds]);
 
   return (
-    <>
+    <LoadScript 
+      googleMapsApiKey="AIzaSyDGqLvov5vkkIEq5cv9AUcg0_LbleRSwWk" 
+      libraries={libraries}
+    >
       <CssBaseline />
       <Header setCoords={setCoords} />
+      
       <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
         <Grid size={{ xs: 12, md: 4 }}>
           <List 
-            places={places} 
+            places={filteredPlaces?.length ? filteredPlaces : places} 
             childClicked={childClicked} 
-            isLoading={isLoading} 
+            isLoading={isLoading}
+            type={type}
+            setType={setType}
+            rating={rating}
+            setRating={setRating}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 8 }}>
@@ -52,12 +77,12 @@ const App = () => {
             setCoords={setCoords}
             setBounds={setBounds}
             coords={coords}
-            places={places}
+            places={filteredPlaces?.length ? filteredPlaces : places}
             setChildClicked={setChildClicked}
           />
         </Grid>
       </Grid>
-    </>
+    </LoadScript>
   );
 };
 

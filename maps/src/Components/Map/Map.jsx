@@ -9,7 +9,7 @@ const Map = ({ coords, places, setCoords, setBounds, setChildClicked }) => {
   return (
     <Box sx={{ height: '85vh', width: '100%' }}>
       <GoogleMapReact
-        bootstrapURLKeys={{ key: process.env.REACT_APP_GOOGLE_MAP_API_KEY }}
+        bootstrapURLKeys={{ key: "AIzaSyDGqLvov5vkkIEq5cv9AUcg0_LbleRSwWk" }}
         center={coords}
         defaultCenter={coords}
         defaultZoom={14}
@@ -22,8 +22,9 @@ const Map = ({ coords, places, setCoords, setBounds, setChildClicked }) => {
         onChildClick={(child) => setChildClicked(child)}
       >
         {places?.map((place, i) => (
+          // ENVOLTORIO DIV PARA EVITAR LOS WARNINGS $geoService
           <div
-            key={i} // El 'i' es lo que recibe setChildClicked
+            key={i}
             lat={Number(place.latitude)}
             lng={Number(place.longitude)}
             style={{ position: 'relative' }}
@@ -37,12 +38,12 @@ const Map = ({ coords, places, setCoords, setBounds, setChildClicked }) => {
               {!isDesktop ? (
                 <LocationOnOutlinedIcon color="primary" fontSize="large" />
               ) : (
-                <Paper elevation={3} sx={{ p: '10px', display: 'flex', flexDirection: 'column', width: '100px', cursor: 'pointer' }}>
+                <Paper elevation={3} sx={{ p: '10px', display: 'flex', flexDirection: 'column', width: '100px' }}>
                   <Typography variant="subtitle2">{place.name}</Typography>
-                  <Box
-                    component="img"
-                    sx={{ height: '70px', objectFit: 'cover', borderRadius: '4px', my: 1 }}
+                  <img
+                    style={{ cursor: 'pointer', height: '70px', borderRadius: '4px', objectFit: 'cover' }}
                     src={place.photo ? place.photo.images.large.url : 'https://www.foodserviceandhospitality.com/wp-content/uploads/2016/09/Restaurant-Placeholder-001.jpg'}
+                    alt={place.name}
                   />
                   <Rating size="small" value={Number(place.rating)} readOnly />
                 </Paper>
