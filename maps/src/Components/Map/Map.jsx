@@ -2,6 +2,7 @@ import React from 'react';
 import GoogleMapReact from 'google-map-react';
 import { Paper, Typography, useMediaQuery, Rating, Box } from '@mui/material';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import mapStyles from './MapStyles'
 
 const Map = ({ coords, places, setCoords, setBounds, setChildClicked }) => {
   const isDesktop = useMediaQuery('(min-width:600px)');
@@ -9,12 +10,12 @@ const Map = ({ coords, places, setCoords, setBounds, setChildClicked }) => {
   return (
     <Box sx={{ height: '85vh', width: '100%' }}>
       <GoogleMapReact
-        bootstrapURLKeys={{ key: "AIzaSyDGqLvov5vkkIEq5cv9AUcg0_LbleRSwWk" }}
+        bootstrapURLKeys={{ key: process.env.REACT_APP_GOOGLE_MAPS_KEY }}
         center={coords}
         defaultCenter={coords}
         defaultZoom={14}
         margin={[50, 50, 50, 50]}
-        options={{ disableDefaultUI: true, zoomControl: true }}
+        options={{ disableDefaultUI: true, zoomControl: true, styles: mapStyles }}
         onChange={(e) => {
           setCoords({ lat: e.center.lat, lng: e.center.lng });
           setBounds({ ne: e.marginBounds.ne, sw: e.marginBounds.sw });

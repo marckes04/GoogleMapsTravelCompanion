@@ -4,45 +4,46 @@ export const getPlacesData = async (type, sw, ne) => {
   try {
     const isHotel = type === 'hotels';
     
-    // Si es hotel, usamos el nuevo endpoint POST v2
+    // URL común y Headers comunes para evitar repetición
+    const URL = isHotel 
+      ? `https://travel-advisor.p.rapidapi.com/hotels/v2/list` 
+      : `https://travel-advisor.p.rapidapi.com/${type}/list-in-boundary`;
+
+
+    const headers = {
+      'x-rapidapi-key': process.env.REACT_APP_PLACES_KEY,
+      'x-rapidapi-host': 'travel-advisor.p.rapidapi.com',
+    };
+
     if (isHotel) {
-      const { data: { data } } = await axios.post(
-        `https://travel-advisor.p.rapidapi.com/hotels/v2/list`,
+      // Endpoint V2 (POST)
+      const { data } = await axios.post(
+        URL,
         {
           boundingBox: {
             northEast: { lat: ne.lat, lon: ne.lng },
             southWest: { lat: sw.lat, lon: sw.lng }
           }
         },
-        {
-          headers: {
-            'content-type': 'application/json',
-            'x-rapidapi-key': '24d54e64demsh536a6b2379f80d3p187d79jsn22b3045ede39',
-            'x-rapidapi-host': 'travel-advisor.p.rapidapi.com',
-          }
-        }
+        { headers: { ...headers, 'content-type': 'application/json' } }
       );
-      return data?.data || [];
+      // La estructura de V2 suele ser data.data.data o similar, ajustamos:
+      return data?.data?.data || []; 
     }
 
-    // Para Restaurantes y Atracciones seguimos con GET (por ahora)
-    const { data: { data } } = await axios.get(
-      `https://travel-advisor.p.rapidapi.com/${type}/list-in-boundary`,
-      {
-        params: {
-          bl_latitude: sw.lat,
-          tr_latitude: ne.lat,
-          bl_longitude: sw.lng,
-          tr_longitude: ne.lng,
-        },
-        headers: {
-          'x-rapidapi-key': '24d54e64demsh536a6b2379f80d3p187d79jsn22b3045ede39',
-          'x-rapidapi-host': 'travel-advisor.p.rapidapi.com',
-        },
-      }
-    );
+    // Restaurantes y Atracciones (GET)
+    const { data: { data } } = await axios.get(URL, {
+      params: {
+        bl_latitude: sw.lat,
+        tr_latitude: ne.lat,
+        bl_longitude: sw.lng,
+        tr_longitude: ne.lng,
+      },
+      headers: headers,
+    });
+
     return data;
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data:", error.response ? error.response.data : error.message);
   }
 };

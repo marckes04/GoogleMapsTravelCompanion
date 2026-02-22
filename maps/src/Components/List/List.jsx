@@ -12,7 +12,9 @@ const List = ({ places, childClicked, isLoading, type, setType, rating, setRatin
 
   return (
     <Box sx={{ p: '25px' }}>
-      <Typography variant="h5" sx={{ mb: 2 }}>Explorar Alrededor</Typography>
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Explore restaurants and attractions  near to you
+      </Typography>
       
       {isLoading ? (
         <Box sx={{ height: '600px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
